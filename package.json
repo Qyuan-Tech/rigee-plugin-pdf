@@ -1,0 +1,57 @@
+{
+  "name": "rigee-plugin-pdf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read PDFs in Rigee: continuous scrolling, text selection and search, outline, thumbnails.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/Qyuan-Tech/rigee-plugin-pdf",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qyuan-Tech/rigee-plugin-pdf.git"
+  },
+  "packageManager": "pnpm@10.29.2",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc",
+    "release:pack": "pnpm run typecheck && pnpm run build && npm pack"
+  },
+  "devDependencies": {
+    "@rigee/plugin-api": "file:vendor/rigee-plugin-api-0.2.0.tgz",
+    "@types/node": "24.13.5",
+    "@types/react": "19.3.0",
+    "cordis": "4.0.0-rc.10",
+    "esbuild": "0.28.2",
+    "pdfjs-dist": "6.3.289",
+    "typescript": "5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  },
+  "rigee": {
+    "id": "pdf",
+    "version": "1.0.0",
+    "displayName": "PDF Viewer",
+    "description": "Read PDFs: continuous scrolling, text selection and search, outline, thumbnails.",
+    "apiVersion": 1,
+    "minAppVersion": "0.0.1-alpha.6",
+    "permissions": ["files:read"],
+    "main": "dist/main.js",
+    "renderer": "dist/renderer.js",
+    "contributes": {
+      "editors": [
+        {
+          "viewType": "pdf.preview",
+          "displayName": "PDF Viewer",
+          "icon": "file",
+          "selector": { "extensions": ["pdf"] }
+        }
+      ]
+    }
+  }
+}

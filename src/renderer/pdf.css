@@ -1,0 +1,429 @@
+/*
+ * The PDF viewer's own styles.
+ *
+ * Imported from the renderer half, which the build turns into a <style> added when the half first
+ * loads — when someone opens a PDF. Nothing here may be depended on by Rigee or by another plugin: everything is under `.pdf` or carries the `pdf__` prefix, with the single
+ * deliberate exception of `.textLayer` — see the note above that block.
+ *
+ * Shell classes reused as they are: .btn, .muted, .error-banner.
+ */
+
+.pdf {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-deep);
+}
+
+/* ===================================================================== */
+/* Toolbar                                                                */
+/* ===================================================================== */
+
+.pdf__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  flex: 0 0 auto;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf__bar .btn {
+  height: 24px;
+  padding: 0 9px;
+}
+
+.pdf__btn--on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--fg-bright);
+}
+
+.pdf__sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--border-strong);
+}
+
+.pdf__spacer {
+  flex: 1;
+}
+
+.pdf__zoom,
+.pdf__count {
+  min-width: 42px;
+  font-size: 11.5px;
+  color: var(--fg-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf__pagebox,
+.pdf__findbox {
+  height: 24px;
+  border-radius: var(--r-sm);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12px;
+  padding: 0 7px;
+}
+
+.pdf__pagebox {
+  width: 46px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf__pagebox:focus,
+.pdf__findbox:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.pdf__find {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pdf__findbox {
+  width: 190px;
+}
+
+.pdf__findcount {
+  min-width: 78px;
+  font-size: 11.5px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===================================================================== */
+/* Layout                                                                 */
+/* ===================================================================== */
+
+.pdf__body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.pdf__opening {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--fg-faint);
+  pointer-events: none;
+}
+
+.pdf__side {
+  width: 196px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+}
+
+.pdf__side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 10px;
+  height: 28px;
+  flex: 0 0 auto;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  /* The page column is content, not chrome: the reader will want to select text out of it. */
+  user-select: text;
+}
+
+.pdf__viewport:focus {
+  outline: none;
+}
+
+/* ===================================================================== */
+/* Pages                                                                  */
+/* ===================================================================== */
+
+.pdf__pages {
+  /*
+   * The single variable the whole column is laid out from. A zoom step writes it once here and
+   * every page box, canvas and text layer follows — no per-page JavaScript, no relayout loop.
+   */
+  --pdf-scale: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  /* Must stay in step with PAGE_MARGIN in pages.ts, which "fit width" measures against. */
+  padding: 16px;
+}
+
+.pdf__page {
+  /*
+   * pdf.js's own layer variables. `--scale-round-x`/`-y` are NOT optional: the exported
+   * setLayerDimensions helper writes `round(down, var(--total-scale-factor) * Npx,
+   * var(--scale-round-x))`, and with the rounding step undefined the whole expression is invalid
+   * and the text layer collapses to nothing — which looks exactly like a PDF with no text in it.
+   */
+  --total-scale-factor: var(--pdf-scale);
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+  position: relative;
+  flex: 0 0 auto;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.pdf__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Pages with an intrinsic /Rotate render rotated onto the canvas, but a text layer is always laid
+ * out in the UNROTATED page's coordinates — pdf.js's `setLayerDimensions` sizes it from `rawDims`,
+ * which knows nothing about rotation. Its own viewer turns the layer in CSS and so do we, keyed
+ * off the attribute `correctBox` writes. Without this, selecting text on a scanned document that
+ * was saved sideways — common enough in practice — highlights the wrong part of the page.
+ */
+.pdf__page[data-rotation='90'] .textLayer {
+  transform: rotate(90deg) translateY(-100%);
+}
+
+.pdf__page[data-rotation='180'] .textLayer {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+
+.pdf__page[data-rotation='270'] .textLayer {
+  transform: rotate(270deg) translateX(-100%);
+}
+
+/* ===================================================================== */
+/* Search hits                                                            */
+/* ===================================================================== */
+
+.pdf__hits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Positioned in per-cent of the page box, so a zoom carries them without recomputing anything. */
+.pdf__hit {
+  position: absolute;
+  background: #e3bb5e59;
+  border-radius: 2px;
+}
+
+.pdf__hit--active {
+  background: #8b9affa6;
+}
+
+/* ===================================================================== */
+/* Outline                                                                */
+/* ===================================================================== */
+
+.pdf__tree {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 0 10px;
+}
+
+.pdf__tree-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  padding-right: 8px;
+}
+
+.pdf__tree-row:hover {
+  background: var(--bg-hover);
+}
+
+.pdf__tree-title {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 12px;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf__tree-title:hover {
+  color: var(--fg-bright);
+}
+
+.pdf__twisty {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  color: var(--fg-faint);
+}
+
+.pdf__twisty:hover {
+  color: var(--fg);
+}
+
+/* ===================================================================== */
+/* Thumbnails                                                             */
+/* ===================================================================== */
+
+.pdf__rail {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 0 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdf__thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.pdf__thumb-box {
+  display: block;
+  width: 116px;
+  /* The placeholder height until the page's own aspect ratio is known; roughly A4. */
+  height: 150px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pdf__thumb--active .pdf__thumb-box {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.pdf__thumb-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf__thumb-no {
+  font-size: 10.5px;
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdf__thumb--active .pdf__thumb-no {
+  color: var(--accent);
+}
+
+/* ===================================================================== */
+/* Text layer                                                             */
+/*                                                                        */
+/* Lifted from node_modules/pdfjs-dist/web/pdf_viewer.css, unchanged      */
+/* except for the editor-only rules and the annotation layer.             */
+/*                                                                        */
+/* Copied rather than imported, and the class name is pdf.js's rather     */
+/* than ours, because the TextLayer we construct writes these structures  */
+/* itself: the spans, their inline custom properties and the             */
+/* `.markedContent` nesting are its output, not ours. Importing the real  */
+/* stylesheet would cost 164 kB of viewer chrome we do not use — an       */
+/* annotation editor, a sidebar, a toolbar, a print dialog.               */
+/* ===================================================================== */
+
+.textLayer {
+  color-scheme: only light;
+  position: absolute;
+  text-align: initial;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 1;
+
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.textLayer .markedContent {
+  display: contents;
+}
+
+.textLayer span[role='img'] {
+  user-select: none;
+  cursor: default;
+}
+
+/* The glyphs are transparent, so the selection has to paint itself and not the text. */
+.textLayer ::selection {
+  background: color-mix(in srgb, var(--accent), transparent 55%);
+  color: transparent;
+}
+
+.textLayer br::selection {
+  background: transparent;
+}
+
+/*
+ * The `.endOfContent` and `.selecting` rules from the original are deliberately NOT here: that
+ * element is created by the viewer's TextLayerBuilder, which we do not use, so they would style
+ * nothing.
+ */

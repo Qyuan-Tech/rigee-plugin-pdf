@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# What `npm pack` writes — the release asset, built by CI from a tag, never committed.
+/*.tgz
+.DS_Store
+*.log

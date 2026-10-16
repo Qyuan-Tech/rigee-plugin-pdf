@@ -1,0 +1,57 @@
+name: release
+
+# A tag `v<version>` becomes the release Rigee installs from: one asset, `<name>-<version>.tgz`,
+# exactly as `npm pack` writes it. See "Publishing" in @rigee/plugin-api's README for the rules.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: corepack enable
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Rigee refuses a release whose tag, package version and manifest version disagree, so a
+      # mismatch is stopped here rather than published and then refused on every machine.
+      - name: The tag, package.json and the manifest name one version
+        run: |
+          node -e '
+            const pkg = require("./package.json")
+            const version = process.argv[1].replace(/^v/, "")
+            if (pkg.version !== version || pkg.rigee.version !== version) {
+              console.error(`tag ${process.argv[1]}, but version is ${pkg.version} and rigee.version ${pkg.rigee.version}`)
+              process.exit(1)
+            }
+          ' '${{ github.ref_name }}'
+
+      - run: pnpm run typecheck
+      - run: pnpm run build
+      - run: npm pack
+
+      # Drafted, filled, THEN published: with immutable releases on, a published release can no
+      # longer take an asset, so it has to be complete before it is published. A pre-release tag
+      # (v1.1.0-beta.1) is published as one, which `releases/latest` — and so Rigee — skips.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG='${{ github.ref_name }}'
+          ASSET="$(node -p 'require("./package.json").name')-${TAG#v}.tgz"
+          test -f "$ASSET"
+          PRERELEASE=""
+          case "$TAG" in *-*) PRERELEASE="--prerelease";; esac
+          gh release create "$TAG" --draft --verify-tag --title "$TAG" --generate-notes $PRERELEASE
+          gh release upload "$TAG" "$ASSET"
+          gh release edit "$TAG" --draft=false

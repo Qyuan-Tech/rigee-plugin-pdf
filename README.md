@@ -8,7 +8,7 @@ and the reading position kept when the editor is split. Rendered by [pdf.js](htt
 
 In Rigee, open the **Plugins** view, search for `pdf` and install **Qyuan-Tech/rigee-plugin-pdf**.
 Rigee downloads the latest release, checks it against the checksum GitHub reports for it, and asks
-before anything runs. It needs Rigee 0.0.1-alpha.6 or later.
+before anything runs. It needs Rigee 1.1.0 or later.
 
 What it declares: **read files on this computer** — the PDF being opened, read in Rigee's main
 process and handed to the window. As with every Rigee plugin, that is a statement of what it is
@@ -44,8 +44,6 @@ npm pack                # rigee-plugin-pdf-<version>.tgz, the release asset
 
 To try a build in Rigee without publishing it, unpack the tarball's `package/` into
 `<userData>/plugins/pdf/` and approve it in the Plugins view.
-
-`@rigee/plugin-api` is not on npm yet; `vendor/` holds the copy this plugin is built against.
 
 ## Releasing
 

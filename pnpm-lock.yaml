@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@rigee/plugin-api':
-        specifier: file:vendor/rigee-plugin-api-0.2.0.tgz
-        version: file:vendor/rigee-plugin-api-0.2.0.tgz(cordis@4.0.0-rc.10)
+        specifier: ^0.2.0
+        version: 0.2.0(cordis@4.0.0-rc.10)
       '@types/node':
         specifier: 24.13.5
         version: 24.13.5
@@ -263,9 +263,8 @@ packages:
     resolution: {integrity: sha512-vt5tog1cr+QKadIddGe+3LrcX0EmjEd0izF717Uwf92mBmgYfq2XRmL2r4bZU40spB69exxhrBn9I91HYEr/7w==}
     engines: {node: '>= 10'}
 
-  '@rigee/plugin-api@file:vendor/rigee-plugin-api-0.2.0.tgz':
-    resolution: {integrity: sha512-3Oe+J2RR/4b2REdKeerAYl4zo36OpKcHDxSBDNUdhxK7vgsYu9gM+Kk+ekbL9UGNVR4JNAhFdpdo7uUdMG0JPg==, tarball: file:vendor/rigee-plugin-api-0.2.0.tgz}
-    version: 0.2.0
+  '@rigee/plugin-api@0.2.0':
+    resolution: {integrity: sha512-w1jbcvYjkJppk2KrWklbvs2+Wc9fdaIr6DFKLLW0M/9JgQsmbRAdgJpw2MR5oqLZlHHKsUYrtQ1M8ERm0GBQHg==}
     peerDependencies:
       cordis: '>=4.0.0-rc.10'
       react: '>=19'
@@ -447,7 +446,7 @@ snapshots:
       '@napi-rs/canvas-win32-x64-msvc': 1.0.11
     optional: true
 
-  '@rigee/plugin-api@file:vendor/rigee-plugin-api-0.2.0.tgz(cordis@4.0.0-rc.10)':
+  '@rigee/plugin-api@0.2.0(cordis@4.0.0-rc.10)':
     optionalDependencies:
       cordis: 4.0.0-rc.10
 
